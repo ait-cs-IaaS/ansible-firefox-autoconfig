@@ -1,0 +1,60 @@
+---
+# tasks file for ait.phusion.firefox
+
+
+- name: Install firefox
+  apt:
+    name: firefox
+
+- name: Add custom syspref.js to activate auto config
+  copy:
+    src:  syspref.js
+    dest: /etc/firefox/syspref.js
+    mode: 0644
+
+- name: Add custom mozilla.cfg containing auto config
+  copy:
+    src:  mozilla.cfg
+    dest: /usr/lib/firefox/mozilla.cfg
+    mode: 0644
+
+- name: Add custom distribution.ini template for bookmark customization
+# ca
+  copy:
+    src:  distribution.ini.template
+    dest: "{{ img_templates }}/distribution.ini.template"
+    mode: 0644
+
+- name: Create firefox directory in img_home
+  file:
+    path: "{{ img_home }}/firefox"
+    state: directory
+    mode: 0755
+
+#add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
+#cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
+
+- name: Add custom profiles.ini
+  copy:
+    src:  profiles.ini
+    dest: "{{ img_home }}/profiles.ini"
+    mode: 0644
+
+- name: Add custom xulstore.json
+  copy:
+    src:  xulstore.json
+    dest: "{{ img_home }}/xulstore.json"
+    mode: 0644
+
+- name: Add custom xulstore.json
+  copy:
+    src:  xulstore.json
+    dest: "{{ img_home }}/xulstore.json"
+    mode: 0644
+
+- name: Add init scripts
+  copy:
+    src:  my_init.d
+    dest: "/etc/"
+    owner: root
+    mode: preserve
