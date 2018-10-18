@@ -46,12 +46,6 @@
     dest: "{{ img_home }}/xulstore.json"
     mode: 0644
 
-- name: Add custom xulstore.json
-  copy:
-    src:  xulstore.json
-    dest: "{{ img_home }}/xulstore.json"
-    mode: 0644
-
 - name: Add init scripts
   copy:
     src:  my_init.d
