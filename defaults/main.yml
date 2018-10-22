@@ -1,2 +1,6 @@
 ---
 # defaults file for ait.phusion.firefox
+default_user: ubuntu
+user: ubuntu
+img_home: "/opt/unity-vnc"
+img_templates: "/opt/unity-vnc/templates"

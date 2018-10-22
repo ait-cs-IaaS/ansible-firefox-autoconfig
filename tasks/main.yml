@@ -37,13 +37,13 @@
 - name: Add custom profiles.ini
   copy:
     src:  profiles.ini
-    dest: "{{ img_home }}/profiles.ini"
+    dest: "{{ img_home }}/firefox/profiles.ini"
     mode: 0644
 
 - name: Add custom xulstore.json
   copy:
     src:  xulstore.json
-    dest: "{{ img_home }}/xulstore.json"
+    dest: "{{ img_home }}/firefox/xulstore.json"
     mode: 0644
 
 - name: Add init scripts
