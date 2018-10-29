@@ -1,38 +1,47 @@
-Role Name
-=========
+# ait.phusion.firefox
 
-A brief description of the role goes here.
+Installs and makes firefox configurable through environment variables.
+## Requirements
 
-Requirements
-------------
+Requires the init process provided by the [phusion/baseimage](https://hub.docker.com/r/phusion/baseimage/) and assumes unity desktop is installed.
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+## Role Variables
 
-Role Variables
---------------
+Variables available as per cyberrange base client docker image:
+- `default_user`: ubuntu  
+   The default user made available by the baseimage
+- `user`: ubuntu  
+   The user to be used
+- `img_home`: "/opt/unity-vnc"  
+   Directory containing script and config file specific to the cyberrange base image
+- `img_templates`: "/opt/unity-vnc/templates"  
+   Directory that should be used to store templates, which are rendered on startup
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+## Environment Variables
 
-Dependencies
-------------
+- `FIREFOX_HOMEPAGE`
+    Sets the firefox startpage.
+    (is overriden if `FIREFOX_JSON` contains homepage setting)
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- `FIREFOX_JSON`
+    Configures firefox using the supplied json string.
+    Following key value pairs are accepted:
+    - `homepage`: string  
+        Firefox startpage
+    - `accounts`: list  
+        List of dictonaries containing user login information.
+        See firefox/firefox-example.json for a login information example.
+    - `certs`: list  
+        A list of certificates to add to firefox.
+        List items must be certificate content without line breaks.
+    - `certfiles`: list  
+        A list of certificate file paths.
 
-Example Playbook
-----------------
+- `FIREFOX_CERT_FILES`
+    A json list of CA certificate file locations to be installed in firefox.
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+- `FIREFOX_DISTRIBUTION_JSON`
+    Accepts a distribution.ini configuration in json format i.e. a map where top level keys are sections
+    and top level values are dictonaries containing the configuration.
+    See https://wiki.mozilla.org/Distribution_INI_File for possible configuration options
+    and [distribution-example.json ](files/distribution-example.json) for an example.
