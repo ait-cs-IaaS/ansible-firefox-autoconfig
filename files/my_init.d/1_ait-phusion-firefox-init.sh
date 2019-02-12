@@ -13,6 +13,6 @@ sudo -u $OS_USER mkdir -p /home/$OS_USER/.mozilla/firefox/profile.default
 cp $IMG_HOME/firefox/profiles.ini /home/$OS_USER/.mozilla/firefox/profiles.ini
 cp $IMG_HOME/firefox/xulstore.json /home/$OS_USER/.mozilla/firefox/profile.default/xulstore.json
 
-chown -R $OS_USER:$OS_USER /home/$OS_USER
+chown -R $OS_USER:$OS_USER /home/$OS_USER || true
 
 echo "Done rendering"
