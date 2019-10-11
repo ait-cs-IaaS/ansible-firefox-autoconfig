@@ -42,11 +42,57 @@ Installs and configures firefox with mozilla autoconfig
   - ∟.passwordField: The id of the password input HTML field
   -
 
+# Examples
 
- # Licence
+Simple config only change start page
+```yaml
+- hosts: "{{ test_host | default('localhost') }}"
+  roles:
+    - role: firefox-autoconfig
+      vars: 
+        firefox_homepage: test.at
+```
+
+
+Add login credentials to pre configure
+```yaml
+- hosts: "{{ test_host | default('localhost') }}"
+  roles:
+    - role: firefox-autoconfig
+      vars: 
+        firefox_json: 
+          homepage: test.at
+          accounts:
+          - hostname: http://test.at
+            httpRealm: null
+            formSubmitURL: http://test.at
+            username: test
+            password: test
+            usernameField: user_name
+            passwordField: password
+```
+
+Add a few bookmarks
+```yaml
+- hosts: "{{ test_host | default('localhost') }}"
+  roles:
+    - role: firefox-autoconfig
+      vars: 
+        firefox_json: 
+          BookmarksToolbar:
+            item.1.title: OWASP TOP 10 2013
+            item.1.link: https://www.owasp.org/index.php/Top_10_2013-Top_10
+            item.1.description: OWASP Top 10 vulnarbilities year 2013
+            item.2.title: Test
+            item.2.link: https://test.at/
+            item.2.description: This is test
+```
+
+
+# Licence
 
  GPL
 
- # Author information
+# Author information
 
  This role was created in 2019 by [Maximilian Frank](https://frank-maximilian.at)

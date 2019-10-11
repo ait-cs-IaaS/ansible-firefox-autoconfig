@@ -13,6 +13,3 @@ firefox_profile_name: default
 firefox_distribution_template: "templates/distribution.ini.j2"
 firefox_distribution_append: True
 
-firefox_json: {"homepage": "test.at", "accounts":[{"hostname": "http://test.at", "httpRealm": null, "formSubmitURL": "http://test.at", "username": "test", "password": "test", "usernameField": "user_name", "passwordField": "password"}]}
-firefox_distribution: {"BookmarksToolbar":{"item.1.title":"MISP", "item.1.link":"https://misp.cloud.cyberrange.at/", "item.1.description":"Open Source Threat Intelligence Platform & Open Standards For Threat Information Sharing", "item.2.title":"OWASP TOP 10 2013", "item.2.link":"https://www.owasp.org/index.php/Top_10_2013-Top_10", "item.2.description":"OWASP Top 10 vulnarbilities year 2013"}, "BookmarksMenu": {"item.1.type": "folder", "item.1.title": "folder title", "item.1.folderId": 2}}
-firefox_homepage: "test.at/wowey"
