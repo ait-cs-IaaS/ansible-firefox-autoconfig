@@ -1,47 +1,52 @@
-# ait.phusion.firefox
+# firefox
 
-Installs and makes firefox configurable through environment variables.
-## Requirements
+Installs and configures firefox with mozilla autoconfig
 
-Requires the init process provided by the [phusion/baseimage](https://hub.docker.com/r/phusion/baseimage/) and assumes unity desktop is installed.
 
 ## Role Variables
+| Variable name                       | Type            | Default                                   | Description                                                                                                                                                                                                                       |
+| ----------------------------------- | --------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| firefox_build                       | string          |                                           | Allows to set a specific firefox version to be installed (must be available through apt).                                                                                                                                         |
+| firefox_autoconfig                  | file path       | mozilla.cfg.j2                            | Can be used to replace the default autoconfig script                                                                                                                                                                              |
+| firefox_syspref                     | file path       | syspref.js                                | Can be used to replace the default syspref config                                                                                                                                                                                 |
+| firefox_installs_ini                | file path       | installs.ini                              | Can be used to replace the default installs.ini template                                                                                                                                                                                                                                  |
+| firefox_profiles_ini                | file path       | profiles.ini                              | Can be used to replace the default profiles.ini template                                                                                                                                                                                   |
+| firefox_xulstore                    | file path       | xulstore.json                             | Can be used to replace the default xulstore.json                                                                                                                                                                                  |
+| firefox_config_dir                  | file path       | /home/{{ ansible_user }}/.mozilla/firefox | The path for the firefox user config directory                                                                                                                                                                                    |
+| firefox_profile                     | string          | profile.default                           | The directory for the default profile                                                                                                                                                                                             |
+| firefox_profile_name                | string          | default                                   | The name for the default profile                                                                                                                                                                                                  |
+| firefox_profiles_version            | string          | 4F96D1932A9F858E                          | The hex identifier for the firefox install. Needed to configure profiles.                                                                                                                                                         |
+| firefox_distribution_template       | file path       | templates/distribution.ini.j2             | The template to use for the distribution.ini file                                                                                                                                                                                 |
+| firefox_distribution_append         | bool            | True                                      | If True the distribution.ini template will be appended to the existing file installed by the apt package. Otherwise the file will be completely replaced.*                                                                        |
+| firefox_homepage                    | URL             |                                           | Sets the firefox startpage. (is overridden if `firefox_json` contains homepage setting)                                                                                                                                           |
+| firefox_json                        | dict            |                                           | Configures firefox using the supplied dictionary.                                                                                                                                                                                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;∟.homepage  | string          |                                           | Firefox startpage                                                                                                                                                                                                                 |
+| &nbsp;&nbsp;&nbsp;&nbsp;∟.accounts  | list[dict]      |                                           | List of dictionaries containing user login information. See below for details on dict content.** format                                                                                                                           |
+| &nbsp;&nbsp;&nbsp;&nbsp;∟.certs     | list[string]    |                                           | A list of certificates to add to firefox. List items must be certificate content without line breaks.                                                                                                                             |
+| &nbsp;&nbsp;&nbsp;&nbsp;∟.certfiles | list[file path] |                                           | A  list of CA certificate file locations to be installed in firefox.                                                                                                                                                              |
+| firefox_cert_files                  | list[file path] |                                           | A  list of CA certificate file locations to be installed in firefox.                                                                                                                                                              |
+| firefox_distribution                | dict            |                                           | Accepts a distribution.ini configuration in dictionary format i.e. a map where top level keys are sections and top level values are dictionaries containing the configuration. See https://wiki.mozilla.org/Distribution_INI_File |
 
-Variables available as per cyberrange base client docker image:
-- `default_user`: ubuntu  
-   The default user made available by the baseimage
-- `user`: ubuntu  
-   The user to be used
-- `img_home`: "/opt/unity-vnc"  
-   Directory containing script and config file specific to the cyberrange base image
-- `img_templates`: "/opt/unity-vnc/templates"  
-   Directory that should be used to store templates, which are rendered on startup
+*Note when completely replacing the distribution.ini file a `Global` section with the following entries is required:
+ - `id`
+ - `version`
+ - `about`
 
-## Environment Variables
+***firefox_json.acounts**:
+  - ∟.hostname: The URL to save the user login for
+  - ∟.httpRealm: The HTTP Realm in case of HTTP Auth or `null` otherwise
+  - ∟.formSubmitURL: The URL to POST the login form. Usually the same as `hostname`
+  - ∟.username: The username to save
+  - ∟.password: The password to save
+  - ∟.usernameField: The id of the username input HTML field
+  - ∟.passwordField: The id of the password input HTML field
+  -
 
-- `FIREFOX_HOMEPAGE`
-    Sets the firefox startpage.
-    (is overriden if `FIREFOX_JSON` contains homepage setting)
 
-- `FIREFOX_JSON`
-    Configures firefox using the supplied json string.
-    Following key value pairs are accepted:
-    - `homepage`: string  
-        Firefox startpage
-    - `accounts`: list  
-        List of dictonaries containing user login information.
-        See firefox/firefox-example.json for a login information example.
-    - `certs`: list  
-        A list of certificates to add to firefox.
-        List items must be certificate content without line breaks.
-    - `certfiles`: list  
-        A list of certificate file paths.
+ # Licence
 
-- `FIREFOX_CERT_FILES`
-    A json list of CA certificate file locations to be installed in firefox.
+ GPL
 
-- `FIREFOX_DISTRIBUTION_JSON`
-    Accepts a distribution.ini configuration in json format i.e. a map where top level keys are sections
-    and top level values are dictonaries containing the configuration.
-    See https://wiki.mozilla.org/Distribution_INI_File for possible configuration options
-    and [distribution-example.json ](files/distribution-example.json) for an example.
+ # Author information
+
+ This role was created in 2019 by [Maximilian Frank](https://frank-maximilian.at)

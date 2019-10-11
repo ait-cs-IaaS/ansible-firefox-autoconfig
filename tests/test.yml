@@ -1,5 +1,4 @@
 ---
-- hosts: localhost
-  remote_user: root
+- hosts: "{{ test_host | default('localhost') }}"
   roles:
-    - ait.phusion.firefox
+    - firefox

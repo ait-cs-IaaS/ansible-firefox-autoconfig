@@ -138,7 +138,11 @@ try{
                 "init"
     );
     // parsing yay
-    var firefox_json = getenv("FIREFOX_JSON");
+    {% if firefox_json is defined %}
+    var firefox_json = '{{ firefox_json | tojson }}';
+    {% else %}
+    var firefox_json;
+    {% endif %}
     if(firefox_json){
         firefox_json = JSON.parse(firefox_json);
     }
@@ -170,10 +174,10 @@ try{
                 addCerts(firefox_json.certs);
                 addCertFiles(firefox_json.certfiles);
             }
-            if(getenv("FIREFOX_CERT_FILES")){
-                certFiles = JSON.parse(getenv("FIREFOX_CERT_FILES"));
-                addCertFiles(certFiles);
-            }
+            {% if firefox_cert_files is defined %}
+            certFiles = JSON.parse('{{ firefox_cert_files | tojson  }}');
+            addCertFiles(certFiles);
+            {% endif %}
         }
     }
 
@@ -183,11 +187,12 @@ try{
     //put all prefs or code you only want to run once in here
     if(!getPref("ait.startup.first.done")){
         //setting startup.page via pref once because defaultPref does not seem to work and lockPref would not allow changing it
-        var homepage = firefox_json.homepage || getenv('FIREFOX_HOMEPAGE') || "about:home";
+        
+        var homepage = "{{ firefox_json.homepage | default(firefox_homepage, true) | default('about:home', true)}}"
         pref('browser.startup.homepage', homepage);
         //set pref so we wont run the above prefs again
         pref("ait.startup.first.done", true);
     }
 } catch (ex){
-    displayError("import",ex);
+    displayError("Error:",ex);
 }
