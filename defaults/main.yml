@@ -1,5 +1,5 @@
 ---
-# defaults file for ait.phusion.firefox
+# defaults file for firefox-autoconfig
 
 firefox_autoconfig: mozilla.cfg.j2
 firefox_syspref: syspref.js
