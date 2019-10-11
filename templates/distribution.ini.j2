@@ -1,0 +1,11 @@
+{# this template converts json/python dicts into ini format #}
+{# assumes a dict where top level keys are the ini sections and values are key,value pairs #}
+{% if firefox_distribution is defined %}
+    {% for section, entries in firefox_distribution.items() %} 
+[{{section}}]
+            {% for key,value  in entries.items() %}
+{{key}}={{value}}
+            {% endfor %}
+    {% endfor %}
+{% endif %}
+

@@ -4,3 +4,5 @@ default_user: ubuntu
 user: ubuntu
 img_home: "/opt/unity-vnc"
 img_templates: "/opt/unity-vnc/templates"
+
+firefox_config_dir: "/home/{{ ansible_user }}/.mozilla/firefox"

@@ -5,6 +5,7 @@
 - name: Install firefox
   apt:
     name: firefox
+    state: present
 
 - name: Add custom syspref.js to activate auto config
   copy:
@@ -18,16 +19,15 @@
     dest: /usr/lib/firefox/mozilla.cfg
     mode: 0644
 
-- name: Add custom distribution.ini template for bookmark customization
-# ca
-  copy:
+- name: Add custom distribution.ini for bookmarks and such
+  template:
     src:  distribution.ini.template
-    dest: "{{ img_templates }}/distribution.ini.template"
+    dest: "/home/{{ ansible_user }}/distribution-extend.ini"
     mode: 0644
 
-- name: Create firefox directory in img_home
+- name: Create firefox config directory in user home 
   file:
-    path: "{{ img_home }}/firefox"
+    path: "{{ firefox_config_dir }}"
     state: directory
     mode: 0755
 
@@ -37,13 +37,13 @@
 - name: Add custom profiles.ini
   copy:
     src:  profiles.ini
-    dest: "{{ img_home }}/firefox/profiles.ini"
+    dest: "{{ firefox_config_dir }}/profiles.ini"
     mode: 0644
 
 - name: Add custom xulstore.json
   copy:
     src:  xulstore.json
-    dest: "{{ img_home }}/firefox/xulstore.json"
+    dest: "{{ firefox_config_dir }}/xulstore.json"
     mode: 0644
 
 - name: Add init scripts
