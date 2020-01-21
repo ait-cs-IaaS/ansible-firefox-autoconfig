@@ -54,6 +54,8 @@
     path: "{{ firefox_config_dir }}"
     state: directory
     mode: 0755
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
   tags: [config]
 
 - name: Create firefox profile directory in user home
@@ -61,6 +63,8 @@
     path: "{{ firefox_config_dir }}/{{ firefox_profile }}"
     state: directory
     mode: 0755
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
   tags: [config]
 
 #add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
@@ -71,6 +75,8 @@
     src:  "{{ firefox_installs_ini }}"
     dest: "{{ firefox_config_dir }}/installs.ini"
     mode: 0644
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
   tags: [config]
 
 - name: Add custom profiles.ini
@@ -78,6 +84,8 @@
     src:  "{{ firefox_profiles_ini }}"
     dest: "{{ firefox_config_dir }}/profiles.ini"
     mode: 0644
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
   tags: [config]
 
 - name: Add custom xulstore.json
@@ -85,4 +93,6 @@
     src:  "{{ firefox_xulstore }}"
     dest: "{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json"
     mode: 0644
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
   tags: [config]
