@@ -50,6 +50,7 @@
   tags: [config]
 
 - name: Create firefox config directory in user home
+  become: yes
   file:
     path: "{{ firefox_config_dir }}"
     state: directory
@@ -59,6 +60,7 @@
   tags: [config]
 
 - name: Create firefox profile directory in user home
+  become: yes
   file:
     path: "{{ firefox_config_dir }}/{{ firefox_profile }}"
     state: directory
@@ -71,6 +73,7 @@
 #cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
 
 - name: Add custom installs.ini
+  become: yes
   template:
     src:  "{{ firefox_installs_ini }}"
     dest: "{{ firefox_config_dir }}/installs.ini"
@@ -80,6 +83,7 @@
   tags: [config]
 
 - name: Add custom profiles.ini
+  become: yes
   template:
     src:  "{{ firefox_profiles_ini }}"
     dest: "{{ firefox_config_dir }}/profiles.ini"
@@ -89,6 +93,7 @@
   tags: [config]
 
 - name: Add custom xulstore.json
+  become: yes
   copy:
     src:  "{{ firefox_xulstore }}"
     dest: "{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json"
