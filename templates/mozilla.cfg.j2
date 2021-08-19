@@ -17,6 +17,10 @@ lockPref("general.smoothScroll", false); // Don't do smooth scroll as it results
 // see https://support.mozilla.org/en-US/questions/1167673
 lockPref("browser.tabs.remote.autostart", false);
 lockPref("browser.tabs.remote.autostart.2", false);
+defaultPref("browser.toolbars.bookmarks.visibility", "always");
+defaultPref("browser.bookmarks.addedImportButton", true);
+defaultPref("browser.bookmarks.restore_default_bookmarks ", false);
+defaultPref("browser.uiCustomization.state", "{\"placements\":{\"widget-overflow-fixed-list\":[],\"nav-bar\":[\"back-button\",\"forward-button\",\"stop-reload-button\",\"customizableui-special-spring1\",\"urlbar-container\",\"customizableui-special-spring2\",\"save-to-pocket-button\",\"downloads-button\",\"fxa-toolbar-menu-button\"],\"toolbar-menubar\":[\"menubar-items\"],\"TabsToolbar\":[\"tabbrowser-tabs\",\"new-tab-button\",\"alltabs-button\"],\"PersonalToolbar\":[\"personal-bookmarks\"]},\"seen\":[\"save-to-pocket-button\",\"developer-button\"],\"dirtyAreaCache\":[\"nav-bar\",\"PersonalToolbar\",\"toolbar-menubar\",\"TabsToolbar\"],\"currentVersion\":17,\"newElementCount\":2}");
 //---------------------------------------------------------
 
 /**
@@ -148,20 +152,9 @@ try{
     }
     // here comes the stuff we run on every firefox startup
 
-    // Note: Adding of bookmarks should be done in distribution-extend.ini here we only remove default stuff we dont want
-    function removeDefaultBookmarks(){
-            var navBookmarksService = Components.classes["@mozilla.org/browser/nav-bookmarks-service;1"].getService(Components.interfaces.nsINavBookmarksService);
-            var removeBookmarks = navBookmarksService.getBookmarkIdsForURI(ios.newURI("https://www.mozilla.org/en-US/firefox/central/", null, null), {});
-            for(var i = 0; i < removeBookmarks.length; i++){
-                navBookmarksService.removeItem(removeBookmarks[i]);
-            }
-    }
-
    // Need to use observer for default bookmark removal, because without it the removal does not get applied on first start
     var observer = {
         observe: function observe(subject, topic, data) {
-            // disable for now as it is not working
-            // removeDefaultBookmarks();
             if(firefox_json){
                 addUserLogins(LoginManager, nsLoginInfo, firefox_json);
             }
