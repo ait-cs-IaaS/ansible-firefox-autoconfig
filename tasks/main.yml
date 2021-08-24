@@ -1,31 +1,30 @@
 ---
-# tasks file for firefox-autoconfig
-
 
 - name: Install firefox
   apt:
     name: "{{ 'firefox' if firefox_build is not defined else 'firefox='+firefox_build }}"
     state: present
-  become: yes
+  become: true
   tags: [install]
 
 - name: Add custom syspref.js to activate auto config
   copy:
-    src:  "{{ firefox_syspref }}"
+    src: "{{ firefox_syspref }}"
     dest: /etc/firefox/syspref.js
     mode: 0644
-  become: yes
+  become: true
   tags: [install, config]
 
 - name: Add custom mozilla.cfg containing auto config
   template:
-    src:  "{{ firefox_autoconfig }}"
+    src: "{{ firefox_autoconfig }}"
     dest: /usr/lib/firefox/mozilla.cfg
     mode: 0644
-  become: yes
+  become: true
   tags: [config]
 
-- set_fact:
+- name: Set firefox_distribution fact
+  set_fact:
     firefox_distribution_template_content: "{{ lookup('template', firefox_distribution_template) }}"
   when: firefox_distribution_append
   tags: [config]
@@ -35,17 +34,18 @@
     dest: "/usr/lib/firefox/distribution/distribution.ini"
     content: "{{ firefox_distribution_template_content }}"
     state: present
-    create: yes
-  become: yes
+    create: true
+    mode: 0644
+  become: true
   when: firefox_distribution_append
   tags: [config]
-
 
 - name: Add custom distribution.ini for bookmarks and such
   template:
     src: "{{ firefox_distribution_template }}"
     dest: "/usr/lib/firefox/distribution/distribution.ini"
-  become: yes
+    mode: 0644
+  become: true
   when: not firefox_distribution_append
   tags: [config]
 
@@ -69,13 +69,13 @@
     group: "{{ firefox_user }}"
   tags: [config]
 
-#add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
-#cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
+# add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
+# cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
 
 - name: Add custom installs.ini
   become: yes
   template:
-    src:  "{{ firefox_installs_ini }}"
+    src: "{{ firefox_installs_ini }}"
     dest: "{{ firefox_config_dir }}/installs.ini"
     mode: 0644
     owner: "{{ firefox_user }}"
@@ -85,7 +85,7 @@
 - name: Add custom profiles.ini
   become: yes
   template:
-    src:  "{{ firefox_profiles_ini }}"
+    src: "{{ firefox_profiles_ini }}"
     dest: "{{ firefox_config_dir }}/profiles.ini"
     mode: 0644
     owner: "{{ firefox_user }}"
@@ -95,7 +95,7 @@
 - name: Add custom xulstore.json
   become: yes
   copy:
-    src:  "{{ firefox_xulstore }}"
+    src: "{{ firefox_xulstore }}"
     dest: "{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json"
     mode: 0644
     owner: "{{ firefox_user }}"

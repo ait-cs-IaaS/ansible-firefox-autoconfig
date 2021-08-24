@@ -11,5 +11,4 @@ firefox_profiles_version: 4F96D1932A9F858E
 firefox_profile: profile.default
 firefox_profile_name: default
 firefox_distribution_template: "templates/distribution.ini.j2"
-firefox_distribution_append: True
-
+firefox_distribution_append: true

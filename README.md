@@ -1,9 +1,9 @@
-# firefox-autoconfig
+# Ansible Role: firefox-autoconfig
 
 Installs and configures firefox with mozilla autoconfig
 
-
 ## Role Variables
+
 | Variable name                       | Type            | Default                                   | Description                                                                                                                                                                                                                       |
 | ----------------------------------- | --------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | firefox_user                       | string          |         {{ ansible_user }}                                  | The user to configure firefox for.                                                                                                                                         |
@@ -54,8 +54,8 @@ Simple config only change start page
         firefox_homepage: test.at
 ```
 
-
 Add login credentials to pre configure
+
 ```yaml
 - hosts: "{{ test_host | default('localhost') }}"
   roles:
@@ -74,6 +74,7 @@ Add login credentials to pre configure
 ```
 
 Add a few bookmarks
+
 ```yaml
 - hosts: "{{ test_host | default('localhost') }}"
   roles:
@@ -89,11 +90,10 @@ Add a few bookmarks
             item.2.description: This is test
 ```
 
+## Licence
 
-# Licence
+ GPL-3.0
 
- GPL
-
-# Author information
+## Author information
 
  This role was created in 2019 by [Maximilian Frank](https://frank-maximilian.at)
