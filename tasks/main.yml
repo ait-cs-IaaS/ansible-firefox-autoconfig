@@ -7,6 +7,17 @@
   become: true
   tags: [install]
 
+- name: Delete firefox config directory
+  file:
+    state: absent
+    path: "{{ firefox_config_dir }}"
+  become: true
+  tags:
+    - config
+    - delete
+  when: firefox_config_force
+
+
 - name: Add custom syspref.js to activate auto config
   copy:
     src: "{{ firefox_syspref }}"
