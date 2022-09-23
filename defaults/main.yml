@@ -12,3 +12,4 @@ firefox_profile: profile.default
 firefox_profile_name: default
 firefox_distribution_template: "templates/distribution.ini.j2"
 firefox_distribution_append: true
+firefox_config_force: false
