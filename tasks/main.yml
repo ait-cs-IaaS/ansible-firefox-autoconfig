@@ -24,7 +24,7 @@
     path: /home/{{ firefox_user }}/.mozilla
     state: absent
 
-- name: Remove mozilla folder
+- name: Kill all firefox processes
   become: true
   ansible.builtin.shell:
     cmd: killall firefox
