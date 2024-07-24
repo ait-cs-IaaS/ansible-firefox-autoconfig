@@ -1,14 +1,14 @@
 ---
 # defaults file for firefox-autoconfig
-firefox_user: "{{ ansible_user }}"
+firefox_user: ''
 firefox_autoconfig: mozilla.cfg.j2
 firefox_syspref: syspref.js
 firefox_profiles_ini: profiles.ini
 firefox_installs_ini: installs.ini
 firefox_xulstore: xulstore.json
-firefox_config_dir: "/home/{{ firefox_user }}/.mozilla/firefox"
+firefox_config_dir: '/home/{{ firefox_user }}/.mozilla/firefox'
 firefox_profiles_version: 4F96D1932A9F858E
 firefox_profile: profile.default
 firefox_profile_name: default
-firefox_distribution_template: "templates/distribution.ini.j2"
+firefox_distribution_template: 'templates/distribution.ini.j2'
 firefox_distribution_append: true

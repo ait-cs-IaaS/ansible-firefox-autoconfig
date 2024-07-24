@@ -1,103 +1,114 @@
 ---
+# tasks file for firefox-autoconfig
 
-- name: Install firefox
-  apt:
-    name: "{{ 'firefox' if firefox_build is not defined else 'firefox='+firefox_build }}"
-    state: present
+- name: Set firefox_user
+  when: firefox_user is not defined
+  block:
+    - name: Get currently installed username
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          cut -d: -f1,3 /etc/passwd | egrep ':[0-9]{4}$' | cut -d: -f1
+      args:
+        executable: /bin/bash
+      register: _firefox_user
+      changed_when: false
+
+    - name: Set user to be used for customization
+      ansible.builtin.set_fact:
+        firefox_user: '{{ _firefox_user.stdout }}'
+
+- name: Remove mozilla folder
   become: true
-  tags: [install]
+  ansible.builtin.file:
+    path: /home/{{ firefox_user }}/.mozilla
+    state: absent
+
+- name: Remove mozilla folder
+  become: true
+  ansible.builtin.shell:
+    cmd: killall firefox
+  failed_when: false
 
 - name: Add custom syspref.js to activate auto config
-  copy:
-    src: "{{ firefox_syspref }}"
+  become: true
+  ansible.builtin.copy:
+    src: '{{ firefox_syspref }}'
     dest: /etc/firefox/syspref.js
     mode: 0644
-  become: true
-  tags: [install, config]
 
 - name: Add custom mozilla.cfg containing auto config
-  template:
-    src: "{{ firefox_autoconfig }}"
+  become: true
+  ansible.builtin.template:
+    src: '{{ firefox_autoconfig }}'
     dest: /usr/lib/firefox/mozilla.cfg
     mode: 0644
-  become: true
-  tags: [config]
 
-- name: Set firefox_distribution fact
-  set_fact:
-    firefox_distribution_template_content: "{{ lookup('template', firefox_distribution_template) }}"
+- ansible.builtin.set_fact:
+    firefox_distribution_template_content:
+      "{{ lookup('template', firefox_distribution_template) }}"
   when: firefox_distribution_append
-  tags: [config]
 
-- name: Append custom distribution.ini, for bookmarks and such, to OS native distribution
-  blockinfile:
-    dest: "/usr/lib/firefox/distribution/distribution.ini"
-    content: "{{ firefox_distribution_template_content }}"
+- name: Append custom distribution.ini
+  become: true
+  ansible.builtin.blockinfile:
+    dest: '/usr/lib/firefox/distribution/distribution.ini'
+    content: '{{ firefox_distribution_template_content }}'
     state: present
-    create: true
-    mode: 0644
-  become: true
+    create: yes
   when: firefox_distribution_append
-  tags: [config]
 
 - name: Add custom distribution.ini for bookmarks and such
-  template:
-    src: "{{ firefox_distribution_template }}"
-    dest: "/usr/lib/firefox/distribution/distribution.ini"
-    mode: 0644
   become: true
+  ansible.builtin.template:
+    src: '{{ firefox_distribution_template }}'
+    dest: '/usr/lib/firefox/distribution/distribution.ini'
   when: not firefox_distribution_append
-  tags: [config]
 
 - name: Create firefox config directory in user home
-  become: yes
-  file:
-    path: "{{ firefox_config_dir }}"
+  become: true
+  ansible.builtin.file:
+    path: '{{ firefox_config_dir }}'
     state: directory
     mode: 0755
-    owner: "{{ firefox_user }}"
-    group: "{{ firefox_user }}"
-  tags: [config]
+    owner: '{{ firefox_user }}'
+    group: '{{ firefox_user }}'
 
 - name: Create firefox profile directory in user home
-  become: yes
-  file:
-    path: "{{ firefox_config_dir }}/{{ firefox_profile }}"
+  become: true
+  ansible.builtin.file:
+    path: '{{ firefox_config_dir }}/{{ firefox_profile }}'
     state: directory
     mode: 0755
-    owner: "{{ firefox_user }}"
-    group: "{{ firefox_user }}"
-  tags: [config]
+    owner: '{{ firefox_user }}'
+    group: '{{ firefox_user }}'
 
-# add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
-# cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
+#add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
+#cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
 
 - name: Add custom installs.ini
-  become: yes
-  template:
-    src: "{{ firefox_installs_ini }}"
-    dest: "{{ firefox_config_dir }}/installs.ini"
+  become: true
+  ansible.builtin.template:
+    src: '{{ firefox_installs_ini }}'
+    dest: '{{ firefox_config_dir }}/installs.ini'
     mode: 0644
-    owner: "{{ firefox_user }}"
-    group: "{{ firefox_user }}"
-  tags: [config]
+    owner: '{{ firefox_user }}'
+    group: '{{ firefox_user }}'
 
 - name: Add custom profiles.ini
-  become: yes
-  template:
-    src: "{{ firefox_profiles_ini }}"
-    dest: "{{ firefox_config_dir }}/profiles.ini"
+  become: true
+  ansible.builtin.template:
+    src: '{{ firefox_profiles_ini }}'
+    dest: '{{ firefox_config_dir }}/profiles.ini'
     mode: 0644
-    owner: "{{ firefox_user }}"
-    group: "{{ firefox_user }}"
-  tags: [config]
+    owner: '{{ firefox_user }}'
+    group: '{{ firefox_user }}'
 
 - name: Add custom xulstore.json
-  become: yes
-  copy:
-    src: "{{ firefox_xulstore }}"
-    dest: "{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json"
+  become: true
+  ansible.builtin.copy:
+    src: '{{ firefox_xulstore }}'
+    dest: '{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json'
     mode: 0644
-    owner: "{{ firefox_user }}"
-    group: "{{ firefox_user }}"
-  tags: [config]
+    owner: '{{ firefox_user }}'
+    group: '{{ firefox_user }}'
