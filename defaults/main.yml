@@ -1,6 +1,6 @@
 ---
 # defaults file for firefox-autoconfig
-firefox_user: ''
+# firefox_user: ''
 firefox_autoconfig: mozilla.cfg.j2
 firefox_syspref: syspref.js
 firefox_profiles_ini: profiles.ini
