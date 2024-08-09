@@ -1,191 +1,227 @@
 //preferences here
 //---------------------------------------------------------
-lockPref("startup.homepage_welcome_url", ""); // No welcome URL
-lockPref("browser.startup.homepage_override.mstone", "ignore"); // No upgrade page
-lockPref("browser.rights.override", true); // No rights notification
-lockPref("toolkit.telemetry.enabled", false); // No telemetry
-lockPref("toolkit.telemetry.prompted", 2); // No telemetry notification
-lockPref("datareporting.policy.dataSubmissionPolicyBypassNotification", true); // No share notification
-lockPref("datareporting.healthreport.uploadEnabled", false); // Disable health report upload
-lockPref("app.update.auto", false); // Don't do automatic updates
-lockPref("app.update.enabled", false); // Don't enable updates at all
-lockPref("app.update.service.enabled", false); // Don't enable the update service
-lockPref("browser.shell.checkDefaultBrowser", false); // Don't check if we are the default browser
-lockPref("browser.places.smartBookmarksVersion", -1); // Don't create smart bookmarks
-lockPref("general.smoothScroll", false); // Don't do smooth scroll as it results in crashes
-// multi processing kills firefox
-// see https://support.mozilla.org/en-US/questions/1167673
-lockPref("browser.tabs.remote.autostart", false);
-lockPref("browser.tabs.remote.autostart.2", false);
-defaultPref("browser.toolbars.bookmarks.visibility", "always");
-defaultPref("browser.bookmarks.addedImportButton", true);
-defaultPref("browser.bookmarks.restore_default_bookmarks ", false);
-defaultPref("browser.uiCustomization.state", "{\"placements\":{\"widget-overflow-fixed-list\":[],\"nav-bar\":[\"back-button\",\"forward-button\",\"stop-reload-button\",\"customizableui-special-spring1\",\"urlbar-container\",\"customizableui-special-spring2\",\"save-to-pocket-button\",\"downloads-button\",\"fxa-toolbar-menu-button\"],\"toolbar-menubar\":[\"menubar-items\"],\"TabsToolbar\":[\"tabbrowser-tabs\",\"new-tab-button\",\"alltabs-button\"],\"PersonalToolbar\":[\"personal-bookmarks\"]},\"seen\":[\"save-to-pocket-button\",\"developer-button\"],\"dirtyAreaCache\":[\"nav-bar\",\"PersonalToolbar\",\"toolbar-menubar\",\"TabsToolbar\"],\"currentVersion\":17,\"newElementCount\":2}");
+lockPref('startup.homepage_welcome_url', ''); // No welcome URL
+lockPref('browser.startup.homepage_override.mstone', 'ignore'); // No upgrade page
+lockPref('browser.rights.override', true); // No rights notification
+lockPref('toolkit.telemetry.enabled', false); // No telemetry
+lockPref('toolkit.telemetry.prompted', 2); // No telemetry notification
+lockPref('datareporting.policy.dataSubmissionPolicyBypassNotification', true); // No share notification
+lockPref('datareporting.healthreport.uploadEnabled', false); // Disable health report upload
+lockPref('app.update.auto', false); // Don't do automatic updates
+lockPref('app.update.enabled', false); // Don't enable updates at all
+lockPref('app.update.service.enabled', false); // Don't enable the update service
+lockPref('browser.shell.checkDefaultBrowser', false); // Don't check if we are the default browser
+lockPref('browser.places.smartBookmarksVersion', -1); // Don't create smart bookmarks
+lockPref('general.smoothScroll', false); // Don't do smooth scroll as it results in crashes
+lockPref('browser.tabs.remote.autostart', false);
+lockPref('browser.tabs.remote.autostart.2', false);
+defaultPref('browser.toolbars.bookmarks.visibility', 'always');
+defaultPref('browser.bookmarks.addedImportButton', true);
+defaultPref('browser.bookmarks.restore_default_bookmarks ', false);
+defaultPref(
+  'browser.uiCustomization.state',
+  '{"placements":{"widget-overflow-fixed-list":[],"nav-bar":["back-button","forward-button","stop-reload-button","customizableui-special-spring1","urlbar-container","customizableui-special-spring2","save-to-pocket-button","downloads-button","fxa-toolbar-menu-button"],"toolbar-menubar":["menubar-items"],"TabsToolbar":["tabbrowser-tabs","new-tab-button","alltabs-button"],"PersonalToolbar":["personal-bookmarks"]},"seen":["save-to-pocket-button","developer-button"],"dirtyAreaCache":["nav-bar","PersonalToolbar","toolbar-menubar","TabsToolbar"],"currentVersion":17,"newElementCount":2}',
+);
 //---------------------------------------------------------
 
 /**
  * Adds a single credential pair to the login manager.
  * httpRealm should be null unless it is for HTTP auth
  */
-function registerLoginInfo(LoginManager,nsLoginInfo, hostname, formSubmitURL, httpRealm, username, password, username_field, password_field){
+
+function registerLoginInfo(
+    LoginManager,
+    nsLoginInfo,
+    hostname,
+    formSubmitURL,
+    httpRealm,
+    username,
+    password,
+  ) {
     //check if login info already exists
     var logins = LoginManager.findLogins({}, hostname, formSubmitURL, httpRealm);
-    for (var i = 0; i < logins.length; i++){
-        if (logins[i].username == username){
-            // if user exists and password is different update it
-            if (logins[i].password != password){
-                var newLoginInfo = new nsLoginInfo(hostname, formSubmitURL, httpRealm, username, password, logins[i].username, logins[i].password);
-                LoginManager.modifyLogin(logins[i], newLoginInfo);
-            }
-            return;
+    for (var i = 0; i < logins.length; i++) {
+      if (logins[i].username == username) {
+        // update password if info exists
+        if (logins[i].password != password) {
+          var newLoginInfo = new nsLoginInfo(
+            hostname,
+            formSubmitURL,
+            httpRealm,
+            username,
+            password,
+            logins[i].username,
+            logins[i].password,
+          );
+          LoginManager.modifyLogin(logins[i], newLoginInfo);
         }
+        return;
+      }
     }
-    // if we made it this far there is no matching login info and we can just add the new one
-    var newLoginInfo = new nsLoginInfo(hostname, formSubmitURL, httpRealm, username, password, username_field, password_field);
+    // if we made it this far there is no matching login info
+    var newLoginInfo = new nsLoginInfo(
+      hostname,
+      formSubmitURL,
+      httpRealm,
+      username,
+      password,
+      '',
+      '',
+    );
     LoginManager.addLogin(newLoginInfo);
-}
+  }
 
 // add all login info from the json list
-function addUserLogins(LoginManager,nsLoginInfor, firefox_json){
-    var accounts = firefox_json.accounts;
-    if(accounts){
-        for(var i = 0; i <= accounts.length; i++){
-            account = accounts[i];
-            registerLoginInfo(LoginManager, nsLoginInfo, account.hostname, account.formSubmitURL, account.httpRealm, account.username, account.password, account.usernameField, account.passwordField);
+function addUserLogins(firefox_json) {
+  var accounts = firefox_json.accounts;
+  // FIXME: Accounts are not added yet
+  if (accounts) {
+    for (var i = 0; i < accounts.length; i++) {
+      var account = accounts[i];
+      
+        try {
+            // Setup password for the account
+            const Cc = Components.classes;
+            const Ci = Components.interfaces;
+            // get login manager
+            const LoginManager = Cc['@mozilla.org/login-manager;1'].getService(
+            Ci.nsILoginManager,
+            );
+            var nsLoginInfo = new Components.Constructor(
+            '@mozilla.org/login-manager/loginInfo;1',
+            Components.interfaces.nsILoginInfo,
+            'init',
+            );
 
-        }
+            registerLoginInfo(
+                LoginManager,
+                nsLoginInfo,
+                'www.shift.at',
+                null,
+                'www.shift.at',
+                'csirt1',
+                'mozart.rocks',
+                'user_login',
+                'user_pass',
+            );
+            } catch (ex) {
+                
+            }
     }
+  }
 }
 
 // add cert as CA
 // we use full trust for now json could be changed to control trust on a per cert basis
-function addCert(cert,certdb){
-    certdb.addCertFromBase64(cert, "C,C,C", "");
+function addCert(cert, certdb) {
+  certdb.addCertFromBase64(cert, 'C,C,C', '');
 }
 
-function addCerts(certs){
-    if(certs){
-        // first get old version of certdb
-        var certdb = Components.classes["@mozilla.org/security/x509certdb;1"].getService(Components.interfaces.nsIX509CertDB);
-        var certdb2 = certdb;
-        // then try to get the new one if possible
-        try{
-            certdb2 = Components.classes["@mozilla.org/security/x509certdb;1"].getService(Components.interfaces.nsIX509CertDB2);
-        }catch(e){}
-        for(var i = 0; i < certs.length; i++){
-            addCert(certs[i],certdb2);
-        }
+function addCerts(certs) {
+  if (certs) {
+    // first get old version of certdb
+    var certdb = Components.classes[
+      '@mozilla.org/security/x509certdb;1'
+    ].getService(Components.interfaces.nsIX509CertDB);
+    var certdb2 = certdb;
+    // then try to get the new one if possible
+    try {
+      certdb2 = Components.classes[
+        '@mozilla.org/security/x509certdb;1'
+      ].getService(Components.interfaces.nsIX509CertDB2);
+    } catch (e) {}
+    for (var i = 0; i < certs.length; i++) {
+      addCert(certs[i], certdb2);
     }
+  }
 }
 
 // utility function to get certificate database
 function getCertDB() {
   // get old interface first
-  var certdb = Components.classes["@mozilla.org/security/x509certdb;1"].getService(Components.interfaces.nsIX509CertDB);
+  var certdb = Components.classes[
+    '@mozilla.org/security/x509certdb;1'
+  ].getService(Components.interfaces.nsIX509CertDB);
   var certdb2 = certdb;
   // try to get new interface if possible
   try {
-    certdb2 = Components.classes["@mozilla.org/security/x509certdb;1"].getService(Components.interfaces.nsIX509CertDB2);
+    certdb2 = Components.classes[
+      '@mozilla.org/security/x509certdb;1'
+    ].getService(Components.interfaces.nsIX509CertDB2);
   } catch (e) {}
   return certdb2;
 }
 
-// read CA certs from files and add them
-// https://stackoverflow.com/a/37682561
-function addCertFiles(certFiles) {
-  if (certFiles) {
-    Components.utils.importGlobalProperties(['TextDecoder']);
-    Components.utils.import("resource://gre/modules/FileUtils.jsm");
-    Components.utils.import("resource://gre/modules/osfile.jsm")
-    var BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
-    var END_CERT = "-----END CERTIFICATE-----";
-    let decoder = new TextDecoder();
+// Add CA certs from provided strings
+function addCertStrings(certStrings) {
+  if (certStrings) {
     var certdb2 = getCertDB();
-    for (var i = 0; i < certFiles.length; i++) {
-      let decoder = new TextDecoder();
-      let promise = OS.File.read(certFiles[i]).then(
-        function onFullfill(array) {
-          let certfile = decoder.decode(array);
-          certfile = certfile.replace(/[\r\n]/g, "");
-          begin = certfile.indexOf(BEGIN_CERT);
-          end = certfile.indexOf(END_CERT);
-          cert = certfile.substring(begin + BEGIN_CERT.length, end);
-          addCert(cert, certdb2);
-          return cert;
-
-        },
-        function onReject(e) {
-          displayError("file", e);
-        }
-      ).catch(
-        function onError(e) {
-          displayError("file", e);
-        }
-      );
-
+    for (var i = 0; i < certStrings.length; i++) {
+      let certfile = certStrings[i].replace(/[\r\n]/g, '');
+      let BEGIN_CERT = '-----BEGIN CERTIFICATE-----';
+      let END_CERT = '-----END CERTIFICATE-----';
+      let begin = certfile.indexOf(BEGIN_CERT);
+      let end = certfile.indexOf(END_CERT);
+      let cert = certfile.substring(begin + BEGIN_CERT.length, end);
+      addCert(cert, certdb2);
     }
   }
 }
 
+try {
+  // parsing JSON data
+  {% if firefox_json is defined %}
+  var firefox_json = '{{ firefox_json | tojson }}';
+  {% else %}
+  var firefox_json;
+  {% endif %}
 
-try{
-    // get all important components
-    const Cc = Components.classes;
-    const Ci = Components.interfaces;
-    Components.utils.import("resource://gre/modules/Services.jsm");
-    var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                    .getService(Components.interfaces.nsIIOService);
-    const LoginManager = Cc['@mozilla.org/login-manager;1'].getService(Ci.nsILoginManager);
-    var nsLoginInfo = new Components.Constructor(
-                "@mozilla.org/login-manager/loginInfo;1",
-                Components.interfaces.nsILoginInfo,
-                "init"
-    );
-    // parsing yay
-    {% if firefox_json is defined %}
-    var firefox_json = '{{ firefox_json | tojson }}';
-    {% else %}
-    var firefox_json;
-    {% endif %}
-    if(firefox_json){
-        firefox_json = JSON.parse(firefox_json);
-    }
-    // here comes the stuff we run on every firefox startup
+  if (firefox_json) {
+    firefox_json = JSON.parse(firefox_json);
+  }
 
-   // Need to use observer for default bookmark removal, because without it the removal does not get applied on first start
-    var observer = {
-        observe: function observe(subject, topic, data) {
-            if(firefox_json){
-                addUserLogins(LoginManager, nsLoginInfo, firefox_json);
-            }
-        }
-    }
-    // using seperate observer for certs might be possible to move to bookmarks observer
-    var observer2 = {
-        observe: function observe(subject, topic, data) {
-            if(firefox_json){
-                addCerts(firefox_json.certs);
-                addCertFiles(firefox_json.certfiles);
-            }
-            {% if firefox_cert_files is defined %}
-            certFiles = JSON.parse('{{ firefox_cert_files | tojson  }}');
-            addCertFiles(certFiles);
-            {% endif %}
-        }
-    }
+  // observer for default bookmark removal
+  var observer = {
+    observe: function (subject, topic, data) {
+      if (firefox_json) {
+        addUserLogins(firefox_json);
+      }
+    },
+  };
 
-    Services.obs.addObserver(observer, "distribution-customization-complete", false);
-    Services.obs.addObserver(observer2, "profile-after-change", false);
+  // observer for certificates
+  var observer2 = {
+    observe: function (subject, topic, data) {
+      addCertStrings([
+            {% for ca_cert in firefox_trusted_certs %}
+            `{{ lookup('file', ca_cert) }}`,
+            {% endfor %}
+        ]);
 
-    //put all prefs or code you only want to run once in here
-    if(!getPref("ait.startup.first.done")){
-        //setting startup.page via pref once because defaultPref does not seem to work and lockPref would not allow changing it
-        
-        var homepage = "{{ firefox_json.homepage | default(firefox_homepage, true) | default('about:home', true)}}"
-        pref('browser.startup.homepage', homepage);
-        //set pref so we wont run the above prefs again
-        pref("ait.startup.first.done", true);
-    }
-} catch (ex){
-    displayError("Error:",ex);
+      if (firefox_json) {
+        addCerts(firefox_json.certs);
+        // Assume `firefox_json.certContents` contains the certificate strings
+        //addCertStrings(firefox_json.certContents);
+      }
+    },
+  };
+
+  Services.obs.addObserver(
+    observer,
+    'distribution-customization-complete',
+    false,
+  );
+  Services.obs.addObserver(observer2, 'profile-after-change', false);
+
+  //put all prefs or code you only want to run once in here
+  if (!getPref('ait.startup.first.done')) {
+    //setting startup.page via pref once because defaultPref does not seem to work and lockPref would not allow changing it
+
+    var homepage = 'www.google.com';
+    pref('browser.startup.homepage', homepage);
+    //set pref so we wont run the above prefs again
+    pref('ait.startup.first.done', true);
+  }
+} catch (ex) {
+  
 }
