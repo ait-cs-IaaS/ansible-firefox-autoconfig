@@ -15,6 +15,21 @@ lockPref('browser.places.smartBookmarksVersion', -1); // Don't create smart book
 lockPref('general.smoothScroll', false); // Don't do smooth scroll as it results in crashes
 lockPref('browser.tabs.remote.autostart', false);
 lockPref('browser.tabs.remote.autostart.2', false);
+
+lockPref("intl.accept_languages", "{{ firefox_default_lang | default('en-GB, en') }}");
+lockPref("browser.search.defaultenginename", "Google");
+lockPref("browser.search.defaulturl", "www.google.com/ncr");
+lockPref("browser.search.countryCode", "{{ firefox_default_region | default('GB') }}");
+lockPref("browser.search.region", "{{ firefox_default_region | default('GB') }}");
+lockPref("browser.search.isUS", false);
+lockPref("intl.locale.matchOS", false);
+lockPref("services.sync.prefs.sync.intl.regional_prefs.use_os_locales", false);
+lockPref("browser.send_to_device_locales", "en-GB,en-US,de,es-AR,es-CL,es-ES,es-MX,fr,id,pl,pt-BR,ru,zh-TW");
+lockPref("browser.region.update.region", "{{ firefox_default_region | default('GB') }}");
+lockPref("doh-rollout.home-region", "{{ firefox_default_region | default('GB') }}");
+lockPref("distribution.searchplugins.defaultLocale", "{{ firefox_default_locale | default('en-GB') }}");
+lockPref("general.useragent.locale", "{{ firefox_default_locale | default('en-GB') }}");
+
 defaultPref('browser.toolbars.bookmarks.visibility', 'always');
 defaultPref('browser.bookmarks.addedImportButton', true);
 defaultPref('browser.bookmarks.restore_default_bookmarks ', false);
