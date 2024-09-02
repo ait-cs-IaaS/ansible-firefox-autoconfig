@@ -16,19 +16,19 @@ lockPref('general.smoothScroll', false); // Don't do smooth scroll as it results
 lockPref('browser.tabs.remote.autostart', false);
 lockPref('browser.tabs.remote.autostart.2', false);
 
-lockPref("intl.accept_languages", "{{ firefox_default_lang | default('en-GB, en') }}");
+lockPref("intl.accept_languages", "{{ firefox_default_lang }}");
 lockPref("browser.search.defaultenginename", "Google");
-lockPref("browser.search.defaulturl", "www.google.com/ncr");
-lockPref("browser.search.countryCode", "{{ firefox_default_region | default('GB') }}");
-lockPref("browser.search.region", "{{ firefox_default_region | default('GB') }}");
+lockPref("browser.search.defaulturl", "{{ firefox_default_search }}");
+lockPref("browser.search.countryCode", "{{ firefox_default_region }}");
+lockPref("browser.search.region", "{{ firefox_default_region }}");
 lockPref("browser.search.isUS", false);
 lockPref("intl.locale.matchOS", false);
 lockPref("services.sync.prefs.sync.intl.regional_prefs.use_os_locales", false);
 lockPref("browser.send_to_device_locales", "en-GB,en-US,de,es-AR,es-CL,es-ES,es-MX,fr,id,pl,pt-BR,ru,zh-TW");
-lockPref("browser.region.update.region", "{{ firefox_default_region | default('GB') }}");
-lockPref("doh-rollout.home-region", "{{ firefox_default_region | default('GB') }}");
-lockPref("distribution.searchplugins.defaultLocale", "{{ firefox_default_locale | default('en-GB') }}");
-lockPref("general.useragent.locale", "{{ firefox_default_locale | default('en-GB') }}");
+lockPref("browser.region.update.region", "{{ firefox_default_region }}");
+lockPref("doh-rollout.home-region", "{{ firefox_default_region }}");
+lockPref("distribution.searchplugins.defaultLocale", "{{ firefox_default_locale }}");
+lockPref("general.useragent.locale", "{{ firefox_default_locale }}");
 
 defaultPref('browser.toolbars.bookmarks.visibility', 'always');
 defaultPref('browser.bookmarks.addedImportButton', true);
@@ -38,118 +38,6 @@ defaultPref(
   '{"placements":{"widget-overflow-fixed-list":[],"nav-bar":["back-button","forward-button","stop-reload-button","customizableui-special-spring1","urlbar-container","customizableui-special-spring2","save-to-pocket-button","downloads-button","fxa-toolbar-menu-button"],"toolbar-menubar":["menubar-items"],"TabsToolbar":["tabbrowser-tabs","new-tab-button","alltabs-button"],"PersonalToolbar":["personal-bookmarks"]},"seen":["save-to-pocket-button","developer-button"],"dirtyAreaCache":["nav-bar","PersonalToolbar","toolbar-menubar","TabsToolbar"],"currentVersion":17,"newElementCount":2}',
 );
 //---------------------------------------------------------
-
-/**
- * Adds a single credential pair to the login manager.
- * httpRealm should be null unless it is for HTTP auth
- */
-
-function registerLoginInfo(
-    LoginManager,
-    nsLoginInfo,
-    hostname,
-    formSubmitURL,
-    httpRealm,
-    username,
-    password,
-  ) {
-    //check if login info already exists
-    var logins = LoginManager.findLogins({}, hostname, formSubmitURL, httpRealm);
-    for (var i = 0; i < logins.length; i++) {
-      if (logins[i].username == username) {
-        // update password if info exists
-        if (logins[i].password != password) {
-          var newLoginInfo = new nsLoginInfo(
-            hostname,
-            formSubmitURL,
-            httpRealm,
-            username,
-            password,
-            logins[i].username,
-            logins[i].password,
-          );
-          LoginManager.modifyLogin(logins[i], newLoginInfo);
-        }
-        return;
-      }
-    }
-    // if we made it this far there is no matching login info
-    var newLoginInfo = new nsLoginInfo(
-      hostname,
-      formSubmitURL,
-      httpRealm,
-      username,
-      password,
-      '',
-      '',
-    );
-    LoginManager.addLogin(newLoginInfo);
-  }
-
-// add all login info from the json list
-function addUserLogins(firefox_json) {
-  var accounts = firefox_json.accounts;
-  // FIXME: Accounts are not added yet
-  if (accounts) {
-    for (var i = 0; i < accounts.length; i++) {
-      var account = accounts[i];
-      
-        try {
-            // Setup password for the account
-            const Cc = Components.classes;
-            const Ci = Components.interfaces;
-            // get login manager
-            const LoginManager = Cc['@mozilla.org/login-manager;1'].getService(
-            Ci.nsILoginManager,
-            );
-            var nsLoginInfo = new Components.Constructor(
-            '@mozilla.org/login-manager/loginInfo;1',
-            Components.interfaces.nsILoginInfo,
-            'init',
-            );
-
-            registerLoginInfo(
-                LoginManager,
-                nsLoginInfo,
-                'www.shift.at',
-                null,
-                'www.shift.at',
-                'csirt1',
-                'mozart.rocks',
-                'user_login',
-                'user_pass',
-            );
-            } catch (ex) {
-                
-            }
-    }
-  }
-}
-
-// add cert as CA
-// we use full trust for now json could be changed to control trust on a per cert basis
-function addCert(cert, certdb) {
-  certdb.addCertFromBase64(cert, 'C,C,C', '');
-}
-
-function addCerts(certs) {
-  if (certs) {
-    // first get old version of certdb
-    var certdb = Components.classes[
-      '@mozilla.org/security/x509certdb;1'
-    ].getService(Components.interfaces.nsIX509CertDB);
-    var certdb2 = certdb;
-    // then try to get the new one if possible
-    try {
-      certdb2 = Components.classes[
-        '@mozilla.org/security/x509certdb;1'
-      ].getService(Components.interfaces.nsIX509CertDB2);
-    } catch (e) {}
-    for (var i = 0; i < certs.length; i++) {
-      addCert(certs[i], certdb2);
-    }
-  }
-}
 
 // utility function to get certificate database
 function getCertDB() {
@@ -178,30 +66,16 @@ function addCertStrings(certStrings) {
       let begin = certfile.indexOf(BEGIN_CERT);
       let end = certfile.indexOf(END_CERT);
       let cert = certfile.substring(begin + BEGIN_CERT.length, end);
-      addCert(cert, certdb2);
+      certdb2.addCertFromBase64(cert, 'C,C,C', '');
     }
   }
 }
 
 try {
-  // parsing JSON data
-  {% if firefox_json is defined %}
-  var firefox_json = '{{ firefox_json | tojson }}';
-  {% else %}
-  var firefox_json;
-  {% endif %}
-
-  if (firefox_json) {
-    firefox_json = JSON.parse(firefox_json);
-  }
 
   // observer for default bookmark removal
   var observer = {
-    observe: function (subject, topic, data) {
-      if (firefox_json) {
-        addUserLogins(firefox_json);
-      }
-    },
+    observe: function (subject, topic, data) {},
   };
 
   // observer for certificates
@@ -212,12 +86,6 @@ try {
             `{{ lookup('file', ca_cert) }}`,
             {% endfor %}
         ]);
-
-      if (firefox_json) {
-        addCerts(firefox_json.certs);
-        // Assume `firefox_json.certContents` contains the certificate strings
-        //addCertStrings(firefox_json.certContents);
-      }
     },
   };
 
@@ -231,12 +99,8 @@ try {
   //put all prefs or code you only want to run once in here
   if (!getPref('ait.startup.first.done')) {
     //setting startup.page via pref once because defaultPref does not seem to work and lockPref would not allow changing it
-
-    var homepage = 'www.google.com';
-    pref('browser.startup.homepage', homepage);
+    pref('browser.startup.homepage', "{{ firefox_startpage }}");
     //set pref so we wont run the above prefs again
     pref('ait.startup.first.done', true);
   }
-} catch (ex) {
-  
-}
+} catch (ex) {}

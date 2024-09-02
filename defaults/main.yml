@@ -1,6 +1,8 @@
 ---
 # defaults file for firefox-autoconfig
 # firefox_user: ''
+firefox_startpage: www.google.com/ncr
+firefox_default_search: www.google.com/ncr
 firefox_autoconfig: mozilla.cfg.j2
 firefox_syspref: syspref.js
 firefox_profiles_ini: profiles.ini
@@ -12,3 +14,7 @@ firefox_profile: profile.default
 firefox_profile_name: default
 firefox_distribution_template: 'templates/distribution.ini.j2'
 firefox_distribution_append: true
+firefox_default_lang: "en-GB, en"
+firefox_default_region: "GB"
+firefox_default_locale: "en-GB"
+firefox_distribution: "{{ firefox_bookmarks | default({}) }}"
