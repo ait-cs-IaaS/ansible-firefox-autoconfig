@@ -18,10 +18,10 @@
       ansible.builtin.set_fact:
         firefox_user: '{{ _firefox_user.stdout }}'
 
-- name: Remove mozilla folder
+- name: Remove .mozilla/firefox/ folder
   become: true
   ansible.builtin.file:
-    path: /home/{{ firefox_user }}/.mozilla
+    path: /home/{{ firefox_user }}/.mozilla/firefox/
     state: absent
 
 - name: Remove mozilla folder
