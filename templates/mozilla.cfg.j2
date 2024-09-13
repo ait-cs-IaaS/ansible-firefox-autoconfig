@@ -81,11 +81,7 @@ try {
   // observer for certificates
   var observer2 = {
     observe: function (subject, topic, data) {
-      addCertStrings([
-            {% for ca_cert in firefox_trusted_certs %}
-            `{{ lookup('file', ca_cert) }}`,
-            {% endfor %}
-        ]);
+      addCertStrings({{ firefox_trusted_certs }});
     },
   };
 

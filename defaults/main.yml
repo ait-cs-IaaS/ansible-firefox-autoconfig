@@ -18,3 +18,5 @@ firefox_default_lang: "en-GB, en"
 firefox_default_region: "GB"
 firefox_default_locale: "en-GB"
 firefox_distribution: "{{ firefox_bookmarks | default({}) }}"
+
+firefox_trusted_certs_file: /etc/ssl/certs/ca-certificates.crt

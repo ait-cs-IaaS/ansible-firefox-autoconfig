@@ -24,7 +24,7 @@
     path: /home/{{ firefox_user }}/.mozilla/firefox/
     state: absent
 
-- name: Remove mozilla folder
+- name: Kill running firefox processes
   become: true
   ansible.builtin.shell:
     cmd: killall firefox
@@ -37,6 +37,19 @@
     dest: /etc/firefox/syspref.js
     mode: 0644
 
+- name: Read the CA certificates file
+  ansible.builtin.command: 
+    cmd: cat {{ firefox_trusted_certs_file }}
+  register: certs_lines
+
+- name: Join certificate lines into a single string
+  ansible.builtin.set_fact:
+    certs_string: "{{ certs_lines.stdout_lines | join('') }}"
+
+- name: Extract individual certificates into a list
+  ansible.builtin.set_fact:
+    firefox_trusted_certs: "{{ certs_string | regex_findall('-----BEGIN CERTIFICATE-----.+?-----END CERTIFICATE-----', multiline=True) }}"
+
 - name: Add custom mozilla.cfg containing auto config
   become: true
   ansible.builtin.template:
@@ -44,7 +57,8 @@
     dest: /usr/lib/firefox/mozilla.cfg
     mode: 0644
 
-- ansible.builtin.set_fact:
+- name: Set firefox distribution content
+  ansible.builtin.set_fact:
     firefox_distribution_template_content:
       "{{ lookup('template', firefox_distribution_template) }}"
   when: firefox_distribution_append
