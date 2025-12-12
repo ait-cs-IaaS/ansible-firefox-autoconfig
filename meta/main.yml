@@ -1,5 +1,6 @@
+---
 galaxy_info:
-  author: Maximilian Frank
+  author: Lenhard Reuter
   role_name: firefox_autoconfig
   description: Installs firefox and makes it configurable through environment variables.
   company: Austrian Institute of Technology

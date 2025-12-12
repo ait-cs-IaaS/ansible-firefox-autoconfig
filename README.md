@@ -1,93 +1,69 @@
 # Ansible Role: firefox-autoconfig
 
-Installs and configures firefox with mozilla autoconfig
+Configures Firefox using Mozilla autoconfig. The role installs `mozilla.cfg` and `syspref.js`, manages `distribution.ini`, pre-creates multiple profiles, and imports trusted certificates so every profile starts with the same baseline configuration. Firefox needs to be present on the target host.
+
+## What the role does
+- Detects `firefox_user` when not provided and clears the user's existing `.mozilla/firefox` directory.
+- Installs autoconfig files (`/usr/lib/firefox/mozilla.cfg`, `/etc/firefox/syspref.js`) and an optional `distribution.ini`.
+- Creates `profile.default` plus any names in `firefox_profile_names`, wiring them into `installs.ini` and `profiles.ini`, and copying `xulstore.json` into each profile.
+- Imports certificates from `firefox_trusted_certs_file` via `mozilla.cfg`.
+- Patches `/usr/lib/firefox/firefox.sh` to auto-select the `vnc<DISPLAY>` profile, matching the default `firefox_profile_names`.
 
 ## Role Variables
 
-| Variable name                       | Type            | Default                                   | Description                                                                                                                                                                                                                       |
-| ----------------------------------- | --------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| firefox_user                       | string          |         {{ ansible_user }}                                  | The user to configure firefox for.                                                                                                                                         |
-| firefox_build                       | string          |                                           | Allows to set a specific firefox version to be installed (must be available through apt).                                                                                                                                         |
-| firefox_autoconfig                  | file path       | mozilla.cfg.j2                            | Can be used to replace the default autoconfig script                                                                                                                                                                              |
-| firefox_syspref                     | file path       | syspref.js                                | Can be used to replace the default syspref config                                                                                                                                                                                 |
-| firefox_installs_ini                | file path       | installs.ini                              | Can be used to replace the default installs.ini template                                                                                                                                                                          |
-| firefox_profiles_ini                | file path       | profiles.ini                              | Can be used to replace the default profiles.ini template                                                                                                                                                                          |
-| firefox_xulstore                    | file path       | xulstore.json                             | Can be used to replace the default xulstore.json                                                                                                                                                                                  |
-| firefox_config_dir                  | file path       | /home/{{ firefox_user }}/.mozilla/firefox | The path for the firefox user config directory                                                                                                                                                                                    |
-| firefox_profile                     | string          | profile.default                           | The directory for the default profile                                                                                                                                                                                             |
-| firefox_profile_name                | string          | default                                   | The name for the default profile                                                                                                                                                                                                  |
-| firefox_profiles_version            | string          | 4F96D1932A9F858E                          | The hex identifier for the firefox install. Needed to configure profiles.                                                                                                                                                         |
-| firefox_distribution_template       | file path       | templates/distribution.ini.j2             | The template to use for the distribution.ini file                                                                                                                                                                                 |
-| firefox_distribution_append         | bool            | True                                      | If True the distribution.ini template will be appended to the existing file installed by the apt package. Otherwise the file will be completely replaced.*                                                                        |
-| firefox_homepage                    | URL             |                                           | Sets the firefox startpage. (is overridden if `firefox_json` contains homepage setting)                                                                                                                                           |
-| firefox_json                        | dict            |                                           | Configures firefox using the supplied dictionary.                                                                                                                                                                                 |
-| &nbsp;&nbsp;&nbsp;&nbsp;∟.homepage  | string          |                                           | Firefox startpage                                                                                                                                                                                                                 |
-| &nbsp;&nbsp;&nbsp;&nbsp;∟.accounts  | list[dict]      |                                           | List of dictionaries containing user login information. See below for details on dict content.** format                                                                                                                           |
-| &nbsp;&nbsp;&nbsp;&nbsp;∟.certs     | list[string]    |                                           | A list of certificates to add to firefox. List items must be certificate content without line breaks.                                                                                                                             |
-| &nbsp;&nbsp;&nbsp;&nbsp;∟.certfiles | list[file path] |                                           | A  list of CA certificate file locations to be installed in firefox.                                                                                                                                                              |
-| firefox_cert_files                  | list[file path] |                                           | A  list of CA certificate file locations to be installed in firefox.                                                                                                                                                              |
-| firefox_distribution                | dict            |                                           | Accepts a distribution.ini configuration in dictionary format i.e. a map where top level keys are sections and top level values are dictionaries containing the configuration. See https://wiki.mozilla.org/Distribution_INI_File |
+| Variable name                 | Type            | Default                                   | Description |
+| ----------------------------- | --------------- | ----------------------------------------- | ----------- |
+| firefox_user                  | string          | auto-detected                             | User to configure. When unset, the first non-system user (UID with four digits) is used. |
+| firefox_startpage             | string          | www.google.com/ncr                        | Homepage set on first launch. |
+| firefox_default_search        | string          | www.google.com/ncr                        | Default search URL used in `mozilla.cfg`. |
+| firefox_autoconfig            | file path       | mozilla.cfg.j2                            | Template for `/usr/lib/firefox/mozilla.cfg`. |
+| firefox_syspref               | file path       | syspref.js                                | File copied to `/etc/firefox/syspref.js` to enable autoconfig. |
+| firefox_installs_ini          | file path       | installs.ini                              | Template for `installs.ini` in the Firefox config directory. |
+| firefox_profiles_ini          | file path       | profiles.ini                              | Template for `profiles.ini` in the Firefox config directory. |
+| firefox_xulstore              | file path       | xulstore.json                             | File copied into each profile directory. |
+| firefox_config_dir            | file path       | /home/{{ firefox_user }}/.mozilla/firefox | Firefox config directory for the target user. |
+| firefox_profiles_version      | string          | 4F96D1932A9F858E                          | Install GUID written to `installs.ini` and `profiles.ini`. |
+| firefox_distribution_template | file path       | templates/distribution.ini.j2             | Template to render `distribution.ini`. |
+| firefox_distribution_append   | bool            | true                                      | Append to the existing `distribution.ini` when true; replace the file when false. |
+| firefox_default_lang          | string          | en-GB, en                                 | Value used for the `intl.accept_languages` preference. |
+| firefox_default_region        | string          | GB                                        | Region code used by search defaults. |
+| firefox_default_locale        | string          | en-GB                                     | Locale used for UI and distribution settings. |
+| firefox_distribution          | dict            | {{ firefox_bookmarks \| default({}) }}    | INI-style distribution config. Keys are section names and values are dictionaries of entries. |
+| firefox_trusted_certs_file    | file path       | /etc/ssl/certs/ca-certificates.crt        | CA bundle whose certificates are imported into Firefox. |
+| firefox_profile_names         | list[string]    | [vnc0, vnc1, vnc2]                        | Additional profiles created alongside `profile.default`. |
 
-*Note when completely replacing the distribution.ini file a `Global` section with the following entries is required:
- - `id`
- - `version`
- - `about`
+When setting `firefox_distribution_append` to `false`, ensure your rendered `distribution.ini` contains a `Global` section with `id`, `version`, and `about` entries.
 
-***firefox_json.acounts**:
-  - ∟.hostname: The URL to save the user login for
-  - ∟.httpRealm: The HTTP Realm in case of HTTP Auth or `null` otherwise
-  - ∟.formSubmitURL: The URL to POST the login form. Usually the same as `hostname`
-  - ∟.username: The username to save
-  - ∟.password: The password to save
-  - ∟.usernameField: The id of the username input HTML field
-  - ∟.passwordField: The id of the password input HTML field
-  -
+## Examples
 
-# Examples
+Set a custom homepage and create two additional profiles:
 
-Simple config only change start page
 ```yaml
 - hosts: "{{ test_host | default('localhost') }}"
   roles:
     - role: firefox-autoconfig
-      vars: 
-        firefox_homepage: test.at
+      vars:
+        firefox_startpage: https://example.local
+        firefox_profile_names:
+          - student
+          - instructor
 ```
 
-Add login credentials to pre configure
+Replace `distribution.ini` entirely with custom content:
 
 ```yaml
-- hosts: "{{ test_host | default('localhost') }}"
+- hosts: all
   roles:
     - role: firefox-autoconfig
-      vars: 
-        firefox_json: 
-          homepage: test.at
-          accounts:
-          - hostname: http://test.at
-            httpRealm: null
-            formSubmitURL: http://test.at
-            username: test
-            password: test
-            usernameField: user_name
-            passwordField: password
-```
-
-Add a few bookmarks
-
-```yaml
-- hosts: "{{ test_host | default('localhost') }}"
-  roles:
-    - role: firefox-autoconfig
-      vars: 
-        firefox_json: 
-          BookmarksToolbar:
-            item.1.title: OWASP TOP 10 2013
-            item.1.link: https://www.owasp.org/index.php/Top_10_2013-Top_10
-            item.1.description: OWASP Top 10 vulnarbilities year 2013
-            item.2.title: Test
-            item.2.link: https://test.at/
-            item.2.description: This is test
+      vars:
+        firefox_distribution_append: false
+        firefox_distribution:
+          Global:
+            id: custom
+            version: 1.0
+            about: Custom Firefox build
+          Preferences:
+            app.normandy.first_run: false
 ```
 
 ## Licence
@@ -96,4 +72,4 @@ Add a few bookmarks
 
 ## Author information
 
- This role was created in 2019 by [Maximilian Frank](https://frank-maximilian.at)
+ This role was created in 2019 by [Maximilian Frank](https://frank-maximilian.at) and adapted by Lenhard Reuter (AIT)

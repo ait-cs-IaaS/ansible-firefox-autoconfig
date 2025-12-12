@@ -16,7 +16,7 @@
 
     - name: Set user to be used for customization
       ansible.builtin.set_fact:
-        firefox_user: '{{ _firefox_user.stdout }}'
+        firefox_user: "{{ _firefox_user.stdout }}"
 
 - name: Remove .mozilla/firefox/ folder
   become: true
@@ -26,19 +26,19 @@
 
 - name: Kill running firefox processes
   become: true
-  ansible.builtin.shell:
+  ansible.builtin.command:
     cmd: killall firefox
   failed_when: false
 
 - name: Add custom syspref.js to activate auto config
   become: true
   ansible.builtin.copy:
-    src: '{{ firefox_syspref }}'
+    src: "{{ firefox_syspref }}"
     dest: /etc/firefox/syspref.js
-    mode: 0644
+    mode: "0644"
 
 - name: Read the CA certificates file
-  ansible.builtin.command: 
+  ansible.builtin.command:
     cmd: cat {{ firefox_trusted_certs_file }}
   register: certs_lines
 
@@ -53,49 +53,49 @@
 - name: Add custom mozilla.cfg containing auto config
   become: true
   ansible.builtin.template:
-    src: '{{ firefox_autoconfig }}'
+    src: "{{ firefox_autoconfig }}"
     dest: /usr/lib/firefox/mozilla.cfg
-    mode: 0644
+    mode: "0644"
 
 - name: Set firefox distribution content
   ansible.builtin.set_fact:
-    firefox_distribution_template_content:
-      "{{ lookup('template', firefox_distribution_template) }}"
+    firefox_distribution_template_content: "{{ lookup('template', firefox_distribution_template) }}"
   when: firefox_distribution_append
 
 - name: Append custom distribution.ini
   become: true
   ansible.builtin.blockinfile:
-    dest: '/usr/lib/firefox/distribution/distribution.ini'
-    content: '{{ firefox_distribution_template_content }}'
+    dest: /usr/lib/firefox/distribution/distribution.ini
+    content: "{{ firefox_distribution_template_content }}"
     state: present
-    create: yes
+    create: true
   when: firefox_distribution_append
 
 - name: Add custom distribution.ini for bookmarks and such
   become: true
   ansible.builtin.template:
-    src: '{{ firefox_distribution_template }}'
-    dest: '/usr/lib/firefox/distribution/distribution.ini'
+    src: "{{ firefox_distribution_template }}"
+    dest: /usr/lib/firefox/distribution/distribution.ini
   when: not firefox_distribution_append
 
 - name: Create firefox config directory in user home
   become: true
   ansible.builtin.file:
-    path: '{{ firefox_config_dir }}'
+    path: "{{ firefox_config_dir }}"
     state: directory
-    mode: 0755
-    owner: '{{ firefox_user }}'
-    group: '{{ firefox_user }}'
+    mode: "0755"
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
 
 - name: Create firefox profile directory in user home
   become: true
   ansible.builtin.file:
-    path: '{{ firefox_config_dir }}/{{ firefox_profile }}'
+    path: "{{ firefox_config_dir }}/profile.{{ item }}"
     state: directory
-    mode: 0755
-    owner: '{{ firefox_user }}'
-    group: '{{ firefox_user }}'
+    mode: "0755"
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
+  loop: "{{ ['default'] + firefox_profile_names | default([]) }}"
 
 #add profiles.ini and xulstore.json to control things such as bookmarks bar beeing enabled
 #cannot do this via mozilla.cfg as xulstore.json is already loaded into memory when mozilla.cfg is parsed
@@ -103,26 +103,35 @@
 - name: Add custom installs.ini
   become: true
   ansible.builtin.template:
-    src: '{{ firefox_installs_ini }}'
-    dest: '{{ firefox_config_dir }}/installs.ini'
-    mode: 0644
-    owner: '{{ firefox_user }}'
-    group: '{{ firefox_user }}'
+    src: "{{ firefox_installs_ini }}"
+    dest: "{{ firefox_config_dir }}/installs.ini"
+    mode: "0644"
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
 
 - name: Add custom profiles.ini
   become: true
   ansible.builtin.template:
-    src: '{{ firefox_profiles_ini }}'
-    dest: '{{ firefox_config_dir }}/profiles.ini'
-    mode: 0644
-    owner: '{{ firefox_user }}'
-    group: '{{ firefox_user }}'
+    src: "{{ firefox_profiles_ini }}"
+    dest: "{{ firefox_config_dir }}/profiles.ini"
+    mode: "0644"
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
 
 - name: Add custom xulstore.json
   become: true
   ansible.builtin.copy:
-    src: '{{ firefox_xulstore }}'
-    dest: '{{ firefox_config_dir }}/{{ firefox_profile }}/xulstore.json'
-    mode: 0644
-    owner: '{{ firefox_user }}'
-    group: '{{ firefox_user }}'
+    src: "{{ firefox_xulstore }}"
+    dest: "{{ firefox_config_dir }}/profile.{{ item }}/xulstore.json"
+    mode: "0644"
+    owner: "{{ firefox_user }}"
+    group: "{{ firefox_user }}"
+  loop: "{{ ['default'] + firefox_profile_names | default([]) }}"
+
+- name: Patch firefox.sh to auto-select VNC profile based on DISPLAY
+  become: true
+  ansible.builtin.replace:
+    path: /usr/lib/firefox/firefox.sh
+    backup: true
+    regexp: ^.+exec \$MOZ_LIBDIR/\$MOZ_APP_NAME.*$
+    replace: '    exec $MOZ_LIBDIR/$MOZ_APP_NAME --no-remote -P "vnc$(echo "$DISPLAY" | tr -d :)" "$@"'
